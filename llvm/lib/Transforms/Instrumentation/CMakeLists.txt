@@ -10,6 +10,16 @@ add_llvm_component_library(LLVMInstrumentation
   MemProfInstrumentation.cpp
   MemProfUse.cpp
   MemorySanitizer.cpp
+  MPIUsageSanitizer.cpp
+  MPIUsageSanitizer/MPICallDetector.cpp
+  MPIUsageSanitizer/MetadataExtractor.cpp
+  MPIUsageSanitizer/HookInserter.cpp
+  MPIUsageSanitizer/MPIFunctionDatabase.cpp
+  MPIUsageSanitizer/RuntimeInterface.cpp
+  MPIUsageSanitizer/StaticAnalyzer.cpp
+  MPIUsageSanitizer/OptimizationEngine.cpp
+  MPIUsageSanitizer/ConfigurationManager.cpp
+  MPIUsageSanitizer/ErrorHandler.cpp
   NumericalStabilitySanitizer.cpp
   IndirectCallPromotion.cpp
   InstrProfiling.cpp

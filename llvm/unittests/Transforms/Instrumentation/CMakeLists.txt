@@ -11,6 +11,9 @@ set(LLVM_LINK_COMPONENTS
 add_llvm_unittest(InstrumentationTests
   MemProfUseTest.cpp
   PGOInstrumentationTest.cpp
+  MPIUsageSanitizer/MetadataExtractorTest.cpp
+  MPIUsageSanitizer/HookInserterTest.cpp
+  MPIUsageSanitizer/StaticAnalyzerTest.cpp
   )
 
 target_link_libraries(InstrumentationTests PRIVATE LLVMTestingSupport)
