@@ -31,6 +31,18 @@ class Function;
 class BasicBlock;
 class Instruction;
 
+// DenseMapInfo specialization for std::string to allow std::string keys in DenseMap
+template <> struct DenseMapInfo<std::string> {
+  static inline std::string getEmptyKey() { return "~EMPTY~"; }
+  static inline std::string getTombstoneKey() { return "~TOMBSTONE~"; }
+  static unsigned getHashValue(const std::string &Val) {
+    return (unsigned)hash_value(StringRef(Val));
+  }
+  static bool isEqual(const std::string &LHS, const std::string &RHS) {
+    return LHS == RHS;
+  }
+};
+
 /// Optimization strategy for different pass components
 enum class OptimizationStrategy {
   None,           ///< No optimization

@@ -52,6 +52,9 @@ PreservedAnalyses MPISanitizerPass::run(Module &M, ModuleAnalysisManager &AM) {
     ConfigManager->initialize(Config);
   }
   
+  // Initialize error handler with module context
+  SanErrorHandler = std::make_unique<ErrorHandler>(M.getContext());
+  
   bool ModuleChanged = false;
   
   try {
@@ -135,7 +138,7 @@ PreservedAnalyses MPISanitizerPass::run(Module &M, ModuleAnalysisManager &AM) {
     
   } catch (const std::exception& E) {
     if (SanErrorHandler) {
-      SanErrorHandler->reportError(ErrorCategory::InternalError, ErrorLevel::Error,
+      SanErrorHandler->reportError(ErrorLevel::Error, ErrorCategory::InternalError,
                                "Exception in MPI Sanitizer Pass: " + std::string(E.what()),
                                DebugLoc());
     }
@@ -167,7 +170,7 @@ void MPISanitizerPass::initializeComponents() {
   HooksInserter = std::make_unique<HookInserter>();
   SanStaticAnalyzer = std::make_unique<StaticAnalyzer>();
   SanOptimizationEngine = std::make_unique<OptimizationEngine>();
-  SanErrorHandler = std::make_unique<ErrorHandler>();
+  SanErrorHandler = nullptr;
   // RuntimeValidator is initialized on-demand in validateRuntimeInterface
 }
 
@@ -179,7 +182,7 @@ bool MPISanitizerPass::runCallDetection(Module& M) {
     return true;
   } catch (const std::exception& E) {
     if (SanErrorHandler) {
-      SanErrorHandler->reportError(ErrorCategory::CallDetection, ErrorLevel::Error,
+      SanErrorHandler->reportError(ErrorLevel::Error, ErrorCategory::CallDetection,
                                "Call detection failed: " + std::string(E.what()),
                                DebugLoc());
     }
@@ -204,7 +207,7 @@ bool MPISanitizerPass::runMetadataExtraction(Module& M) {
     return !ExtractedMetadata.empty();
   } catch (const std::exception& E) {
     if (SanErrorHandler) {
-      SanErrorHandler->reportError(ErrorCategory::MetadataExtraction, ErrorLevel::Error,
+      SanErrorHandler->reportError(ErrorLevel::Error, ErrorCategory::MetadataExtraction,
                                "Metadata extraction failed: " + std::string(E.what()),
                                DebugLoc());
     }
@@ -227,7 +230,7 @@ bool MPISanitizerPass::runStaticAnalysis(Module& M) {
     return !AnalysisResults.empty();
   } catch (const std::exception& E) {
     if (SanErrorHandler) {
-      SanErrorHandler->reportError(ErrorCategory::StaticAnalysis, ErrorLevel::Error,
+      SanErrorHandler->reportError(ErrorLevel::Error, ErrorCategory::StaticAnalysis,
                                "Static analysis failed: " + std::string(E.what()),
                                DebugLoc());
     }
@@ -252,7 +255,7 @@ bool MPISanitizerPass::runOptimization(Module& M) {
     return !OptimizationDecisions.empty();
   } catch (const std::exception& E) {
     if (SanErrorHandler) {
-      SanErrorHandler->reportError(ErrorCategory::Optimization, ErrorLevel::Error,
+      SanErrorHandler->reportError(ErrorLevel::Error, ErrorCategory::Optimization,
                                "Optimization failed: " + std::string(E.what()),
                                DebugLoc());
     }
@@ -286,7 +289,7 @@ bool MPISanitizerPass::runInstrumentation(Module& M) {
     return CallsInstrumented > 0;
   } catch (const std::exception& E) {
     if (SanErrorHandler) {
-      SanErrorHandler->reportError(ErrorCategory::Instrumentation, ErrorLevel::Error,
+      SanErrorHandler->reportError(ErrorLevel::Error, ErrorCategory::Instrumentation,
                                "Instrumentation failed: " + std::string(E.what()),
                                DebugLoc());
     }
@@ -304,7 +307,7 @@ bool MPISanitizerPass::validateRuntimeInterface(Module& M) {
     return Result.passed();
   } catch (const std::exception& E) {
     if (SanErrorHandler) {
-      SanErrorHandler->reportError(ErrorCategory::RuntimeValidation, ErrorLevel::Warning,
+      SanErrorHandler->reportError(ErrorLevel::Warning, ErrorCategory::RuntimeValidation,
                                "Runtime interface validation failed: " + std::string(E.what()),
                                DebugLoc());
     }
@@ -383,6 +386,9 @@ ModulePass *createMPISanitizerLegacyPass() {
 ModulePass *createMPISanitizerLegacyPass(const PassConfiguration& Config) {
   return new MPISanitizerLegacyPass(Config);
 }
+
+// Forward declare the initialize function inside namespace llvm to satisfy strict standard C++
+void initializeMPISanitizerLegacyPassPass(PassRegistry &Registry);
 
 // Register the pass
 INITIALIZE_PASS(MPISanitizerLegacyPass, "mpi-sanitizer",

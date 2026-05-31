@@ -1296,6 +1296,7 @@ ManglingConvention NameManglingHandler::getManglingConvention(FortranCompiler Co
     case FortranCompiler::Auto:
       return ManglingConvention::Underscore;
   }
+  return ManglingConvention::Underscore;
 }
 
 bool NameManglingHandler::matchesManglingPattern(StringRef Name, ManglingConvention Convention) const {
