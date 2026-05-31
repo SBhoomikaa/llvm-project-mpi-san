@@ -60,7 +60,7 @@ setup_build_dirs() {
     mkdir -p "$UNINSTRUMENTED_DIR"
     
     # Create subdirectories for different example categories
-    for category in basic collective point_to_point error_cases performance multi_language; do
+    for category in basic collective point_to_point error_cases correct performance multi_language; do
         mkdir -p "$INSTRUMENTED_DIR/$category"
         mkdir -p "$UNINSTRUMENTED_DIR/$category"
     done
@@ -316,6 +316,7 @@ main() {
     compile_c_examples "collective" 
     compile_c_examples "point_to_point"
     compile_c_examples "error_cases"
+    compile_c_examples "correct"
     compile_c_examples "performance"
     
     # Multi-language examples

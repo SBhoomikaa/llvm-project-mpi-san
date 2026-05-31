@@ -1,0 +1,81 @@
+name: MPI Usage Sanitizer CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - 'releases/**'
+    paths:
+      - 'llvm/lib/Transforms/Instrumentation/MPIUsageSanitizer/**'
+      - 'llvm/unittests/Transforms/Instrumentation/MPIUsageSanitizer/**'
+      - '.github/workflows/mpi-usage-sanitizer-ci.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'llvm/lib/Transforms/Instrumentation/MPIUsageSanitizer/**'
+      - 'llvm/unittests/Transforms/Instrumentation/MPIUsageSanitizer/**'
+      - '.github/workflows/mpi-usage-sanitizer-ci.yml'
+
+jobs:
+  build-and-test:
+    name: Build Pass & Run Tests
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 1
+
+    - name: Set up Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          cmake \
+          ninja-build \
+          clang \
+          llvm-dev \
+          libopenmpi-dev \
+          openmpi-bin \
+          python3-pip
+
+    - name: Configure CMake for Passes & Unittests
+      run: |
+        mkdir -p build
+        cd build
+        cmake -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DLLVM_BUILD_TESTS=ON \
+          -DLLVM_EXTERNAL_LIT=$(which lit) \
+          ../llvm
+
+    - name: Build Sanitizer Pass & Components
+      run: |
+        cd build
+        ninja LLVMMPIUsageSanitizerComponents
+
+    - name: Run GTest Unit Tests
+      run: |
+        cd build
+        ninja check-llvm-transforms-instrumentation-mpiusagesanitizer
+
+    - name: Build Examples & Seeded Tests
+      env:
+        MPICC: mpicc
+        MPICXX: mpicxx
+        LLVM_DIR: ${{ github.workspace }}/build
+      run: |
+        chmod +x llvm/lib/Transforms/Instrumentation/MPIUsageSanitizer/examples/build_scripts/build_all.sh
+        ./llvm/lib/Transforms/Instrumentation/MPIUsageSanitizer/examples/build_scripts/build_all.sh
+
+    - name: Execute E2E Test Suite & Reporting Harness
+      run: |
+        python3 llvm/lib/Transforms/Instrumentation/MPIUsageSanitizer/examples/run_tests.py
+
+    - name: Upload Test Report Artifact
+      if: always()
+      uses: actions/artifacts@v3
+      with:
+        name: mpi-sanitizer-test-report
+        path: llvm/lib/Transforms/Instrumentation/MPIUsageSanitizer/examples/test_report.md
