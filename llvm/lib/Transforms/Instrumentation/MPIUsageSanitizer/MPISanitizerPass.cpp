@@ -387,11 +387,10 @@ ModulePass *createMPISanitizerLegacyPass(const PassConfiguration& Config) {
   return new MPISanitizerLegacyPass(Config);
 }
 
-// Forward declare the initialize function inside namespace llvm to satisfy strict standard C++
-void initializeMPISanitizerLegacyPassPass(PassRegistry &Registry);
+} // namespace llvm
 
-// Register the pass
+using namespace llvm;
+
+// Register the pass at global scope to satisfy strict standard C++
 INITIALIZE_PASS(MPISanitizerLegacyPass, "mpi-sanitizer",
                 "MPI Usage Sanitizer", false, false)
-
-} // namespace llvm
