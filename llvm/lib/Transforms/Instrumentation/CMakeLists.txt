@@ -54,3 +54,5 @@ add_llvm_component_library(LLVMInstrumentation
   TransformUtils
   ProfileData
   )
+
+add_subdirectory(MPIUsageSanitizer)
