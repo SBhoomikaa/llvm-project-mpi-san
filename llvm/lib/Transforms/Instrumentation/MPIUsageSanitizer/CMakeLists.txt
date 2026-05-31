@@ -25,6 +25,10 @@ add_llvm_component_library(LLVMMPIUsageSanitizerComponents
   PerformanceProfiler.cpp
   PassOptimizer.cpp
   OptimizationOverheadTest.cpp
+  ErrorHandlerTest.cpp
+  ParameterMarshalingTest.cpp
+  RuntimeInterfaceValidatorTest.cpp
+  RuntimeLibraryIntegrationTest.cpp
 
   ADDITIONAL_HEADER_DIRS
   ${LLVM_MAIN_INCLUDE_DIR}/llvm/Transforms/Instrumentation
