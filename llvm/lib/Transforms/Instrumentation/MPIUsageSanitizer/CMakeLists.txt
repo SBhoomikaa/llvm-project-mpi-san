@@ -7,6 +7,9 @@ set(LLVM_LINK_COMPONENTS
   TransformUtils
 )
 
+# Enable exceptions for error handling
+set(LLVM_REQUIRES_EH 1)
+
 add_llvm_component_library(LLVMMPIUsageSanitizerComponents
   MPISanitizerPass.cpp
   MPICallDetector.cpp

@@ -134,11 +134,13 @@ private:
 /// file parsing for complex instrumentation policies.
 class ConfigurationManager {
 public:
+  ConfigurationManager();
   ConfigurationManager(const MPIUsageSanitizerOptions& Options);
   ~ConfigurationManager();
   
   /// Initialize configuration from command line options and config files
   bool initialize();
+  bool initialize(const PassConfiguration& NewConfig);
   
   /// Check if a specific MPI call site should be instrumented
   bool shouldInstrument(const CallSite& Site) const;

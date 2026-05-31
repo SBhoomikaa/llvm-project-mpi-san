@@ -392,6 +392,12 @@ int ConfigFileParser::parseInt(StringRef Value, int DefaultValue) {
 // ConfigurationManager Implementation
 //===----------------------------------------------------------------------===//
 
+ConfigurationManager::ConfigurationManager() 
+    : CLParser(std::make_unique<CommandLineParser>()),
+      FileParser(std::make_unique<ConfigFileParser>()) {
+  LLVM_DEBUG(dbgs() << "Initializing MPI Configuration Manager (Default)\n");
+}
+
 ConfigurationManager::ConfigurationManager(const MPIUsageSanitizerOptions& Opts) 
     : Options(Opts), CLParser(std::make_unique<CommandLineParser>()),
       FileParser(std::make_unique<ConfigFileParser>()) {
@@ -399,6 +405,12 @@ ConfigurationManager::ConfigurationManager(const MPIUsageSanitizerOptions& Opts)
 }
 
 ConfigurationManager::~ConfigurationManager() = default;
+
+bool ConfigurationManager::initialize(const PassConfiguration& NewConfig) {
+  Config = NewConfig;
+  Initialized = true;
+  return true;
+}
 
 bool ConfigurationManager::initialize() {
   LLVM_DEBUG(dbgs() << "Initializing configuration with level: " 

@@ -84,6 +84,9 @@ public:
   
   /// Detect all MPI calls in a function with alias analysis support
   std::vector<CallSite> detectMPICalls(Function& F, AAResults* AA);
+
+  /// Detect all MPI calls in a module
+  std::vector<CallSite> detectMPICalls(Module& M);
   
   /// Check if a function name corresponds to an MPI function
   bool isMPIFunction(StringRef FunctionName);

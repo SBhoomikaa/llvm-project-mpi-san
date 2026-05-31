@@ -62,6 +62,9 @@ public:
   /// Insert hooks for all MPI calls in a function
   virtual bool insertHooks(Function& F, const std::vector<CallSite>& Sites);
   
+  /// Insert hooks for a single MPI call site based on optimization decision
+  virtual bool insertHooks(CallSite& Site, const MPICallMetadata& Metadata, const struct OptimizationDecision& Decision);
+  
   /// Create declarations for all required hook functions in the module
   void createHookDeclarations(Module& M);
   

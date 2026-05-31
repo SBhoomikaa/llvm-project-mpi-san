@@ -349,6 +349,18 @@ RecoveryStrategy ErrorHandler::determineRecoveryStrategy(const MPISanErrorInfo& 
     case ErrorCategory::UnsupportedPattern:
       // Always skip unsupported patterns
       return RecoveryStrategy::SkipAndContinue;
+      
+    case ErrorCategory::InternalError:
+      return RecoveryStrategy::Stop;
+      
+    case ErrorCategory::Optimization:
+      return RecoveryStrategy::ContinueFallback;
+      
+    case ErrorCategory::Instrumentation:
+      return RecoveryStrategy::SkipAndContinue;
+      
+    case ErrorCategory::RuntimeValidation:
+      return RecoveryStrategy::ContinueReduced;
   }
   
   // Default strategy based on error level
@@ -678,6 +690,10 @@ StringRef ErrorHandler::getErrorCategoryName(ErrorCategory Category) {
     case ErrorCategory::Configuration: return "Configuration";
     case ErrorCategory::RuntimeInterface: return "RuntimeInterface";
     case ErrorCategory::UnsupportedPattern: return "UnsupportedPattern";
+    case ErrorCategory::InternalError: return "InternalError";
+    case ErrorCategory::Optimization: return "Optimization";
+    case ErrorCategory::Instrumentation: return "Instrumentation";
+    case ErrorCategory::RuntimeValidation: return "RuntimeValidation";
   }
   return "Unknown";
 }
@@ -709,6 +725,10 @@ ErrorCategory ErrorHandler::parseErrorCategory(StringRef CategoryStr) {
   if (CategoryStr.equals_insensitive("Configuration")) return ErrorCategory::Configuration;
   if (CategoryStr.equals_insensitive("RuntimeInterface")) return ErrorCategory::RuntimeInterface;
   if (CategoryStr.equals_insensitive("UnsupportedPattern")) return ErrorCategory::UnsupportedPattern;
+  if (CategoryStr.equals_insensitive("InternalError")) return ErrorCategory::InternalError;
+  if (CategoryStr.equals_insensitive("Optimization")) return ErrorCategory::Optimization;
+  if (CategoryStr.equals_insensitive("Instrumentation")) return ErrorCategory::Instrumentation;
+  if (CategoryStr.equals_insensitive("RuntimeValidation")) return ErrorCategory::RuntimeValidation;
   return ErrorCategory::PassInfrastructure; // Default
 }
 

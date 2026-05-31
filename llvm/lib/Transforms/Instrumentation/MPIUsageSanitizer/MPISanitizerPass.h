@@ -90,9 +90,9 @@ private:
   std::unique_ptr<MPICallDetector> CallDetector;
   std::unique_ptr<MetadataExtractor> MetaExtractor;
   std::unique_ptr<HookInserter> HooksInserter;
-  std::unique_ptr<StaticAnalyzer> StaticAnalyzer;
-  std::unique_ptr<OptimizationEngine> OptimizationEngine;
-  std::unique_ptr<ErrorHandler> ErrorHandler;
+  std::unique_ptr<StaticAnalyzer> SanStaticAnalyzer;
+  std::unique_ptr<OptimizationEngine> SanOptimizationEngine;
+  std::unique_ptr<ErrorHandler> SanErrorHandler;
   std::unique_ptr<RuntimeInterfaceValidator> RuntimeValidator;
   
   /// Performance profiling and optimization

@@ -72,7 +72,19 @@ enum class ErrorCategory {
   RuntimeInterface,
   
   /// Unsupported MPI patterns or constructs
-  UnsupportedPattern
+  UnsupportedPattern,
+
+  /// Internal sanitizer errors
+  InternalError,
+
+  /// Optimization phase errors
+  Optimization,
+
+  /// Instrumentation phase errors
+  Instrumentation,
+
+  /// Runtime validation errors
+  RuntimeValidation
 };
 
 /// Detailed error information structure

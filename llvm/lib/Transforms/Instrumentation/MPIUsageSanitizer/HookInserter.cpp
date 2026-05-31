@@ -97,6 +97,29 @@ bool HookInserter::insertHooks(Function& F, const std::vector<CallSite>& Sites) 
   return Modified;
 }
 
+bool HookInserter::insertHooks(CallSite& Site, const MPICallMetadata& Metadata, const OptimizationDecision& Decision) {
+  if (!Site.CallInst)
+    return false;
+    
+  Builder = std::make_unique<IRBuilder<>>(Site.CallInst->getContext());
+  
+  bool SiteModified = false;
+  
+  if (Decision.EnablePreHooks) {
+    SiteModified |= insertPreCallHook(Site, Metadata);
+  }
+  
+  if (Decision.EnablePostHooks) {
+    SiteModified |= insertPostCallHook(Site, Metadata);
+  }
+  
+  if (Decision.EnablePerformanceHooks && shouldApplyPerformanceMonitoring(Site, Metadata)) {
+    SiteModified |= insertPerformanceHooks(Site, Metadata);
+  }
+  
+  return SiteModified;
+}
+
 void HookInserter::createHookDeclarations(Module& M) {
   LLVMContext& Ctx = M.getContext();
   

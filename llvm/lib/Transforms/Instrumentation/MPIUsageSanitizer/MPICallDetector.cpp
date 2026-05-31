@@ -73,6 +73,17 @@ std::vector<CallSite> MPICallDetector::detectMPICalls(Function& F, AAResults* AA
   return MPICalls;
 }
 
+std::vector<CallSite> MPICallDetector::detectMPICalls(Module& M) {
+  std::vector<CallSite> AllCalls;
+  for (Function& F : M) {
+    if (!F.isDeclaration()) {
+      auto FunctionCalls = detectMPICalls(F);
+      AllCalls.insert(AllCalls.end(), FunctionCalls.begin(), FunctionCalls.end());
+    }
+  }
+  return AllCalls;
+}
+
 std::vector<CallSite> MPICallDetector::detectDirectCalls(Function& F) {
   std::vector<CallSite> DirectCalls;
   
