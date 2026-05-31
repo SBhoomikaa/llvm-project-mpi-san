@@ -7,14 +7,14 @@ on:
       - 'releases/**'
     paths:
       - 'llvm/lib/Transforms/Instrumentation/MPIUsageSanitizer/**'
-      - 'llvm/unittests/Transforms/Instrumentation/MPIUsageSanitizer/**'
+      - 'llvm/unittests/Transforms/Instrumentation/**'
       - '.github/workflows/mpi-usage-sanitizer-ci.yml'
   pull_request:
     branches:
       - main
     paths:
       - 'llvm/lib/Transforms/Instrumentation/MPIUsageSanitizer/**'
-      - 'llvm/unittests/Transforms/Instrumentation/MPIUsageSanitizer/**'
+      - 'llvm/unittests/Transforms/Instrumentation/**'
       - '.github/workflows/mpi-usage-sanitizer-ci.yml'
 
 jobs:
