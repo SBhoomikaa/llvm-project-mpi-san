@@ -163,8 +163,8 @@ const PassConfiguration& MPISanitizerPass::getConfiguration() const {
 void MPISanitizerPass::initializeComponents() {
   ConfigManager = std::make_unique<ConfigurationManager>();
   CallDetector = std::make_unique<MPICallDetector>();
-  MetadataExtractor = std::make_unique<MetadataExtractor>();
-  HookInserter = std::make_unique<HookInserter>();
+  MetaExtractor = std::make_unique<MetadataExtractor>();
+  HooksInserter = std::make_unique<HookInserter>();
   StaticAnalyzer = std::make_unique<StaticAnalyzer>();
   OptimizationEngine = std::make_unique<OptimizationEngine>();
   ErrorHandler = std::make_unique<ErrorHandler>();
@@ -188,7 +188,7 @@ bool MPISanitizerPass::runCallDetection(Module& M) {
 }
 
 bool MPISanitizerPass::runMetadataExtraction(Module& M) {
-  if (!MetadataExtractor || DetectedCalls.empty()) return false;
+  if (!MetaExtractor || DetectedCalls.empty()) return false;
   
   try {
     ExtractedMetadata.clear();
@@ -196,7 +196,7 @@ bool MPISanitizerPass::runMetadataExtraction(Module& M) {
     
     for (const auto& Call : DetectedCalls) {
       if (Call.CallInst) {
-        MPICallMetadata Metadata = MetadataExtractor->extractMetadata(*Call.CallInst);
+        MPICallMetadata Metadata = MetaExtractor->extractMetadata(*Call.CallInst);
         ExtractedMetadata.push_back(Metadata);
       }
     }
@@ -261,7 +261,7 @@ bool MPISanitizerPass::runOptimization(Module& M) {
 }
 
 bool MPISanitizerPass::runInstrumentation(Module& M) {
-  if (!HookInserter || OptimizationDecisions.empty()) return false;
+  if (!HooksInserter || OptimizationDecisions.empty()) return false;
   
   try {
     uint32_t HooksInserted = 0;
@@ -269,7 +269,7 @@ bool MPISanitizerPass::runInstrumentation(Module& M) {
     
     for (size_t i = 0; i < DetectedCalls.size() && i < ExtractedMetadata.size() && i < OptimizationDecisions.size(); ++i) {
       if (OptimizationDecisions[i].ShouldInstrument) {
-        bool Success = HookInserter->insertHooks(DetectedCalls[i], ExtractedMetadata[i], OptimizationDecisions[i]);
+        bool Success = HooksInserter->insertHooks(DetectedCalls[i], ExtractedMetadata[i], OptimizationDecisions[i]);
         if (Success) {
           CallsInstrumented++;
           // Count hooks based on decision

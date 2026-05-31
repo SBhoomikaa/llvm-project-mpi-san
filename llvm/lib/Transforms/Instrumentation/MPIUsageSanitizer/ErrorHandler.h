@@ -76,7 +76,7 @@ enum class ErrorCategory {
 };
 
 /// Detailed error information structure
-struct ErrorInfo {
+struct MPISanErrorInfo {
   /// Error severity level
   ErrorLevel Level;
   
@@ -102,7 +102,7 @@ struct ErrorInfo {
   uint64_t Timestamp;
   
   /// Constructor
-  ErrorInfo(ErrorLevel Level, ErrorCategory Category, StringRef Message)
+  MPISanErrorInfo(ErrorLevel Level, ErrorCategory Category, StringRef Message)
       : Level(Level), Category(Category), Message(Message.str()),
         Timestamp(0) {}
 };
@@ -137,20 +137,19 @@ struct ErrorStatistics {
 /// Custom diagnostic info for MPI sanitizer
 class MPISanitizerDiagnosticInfo : public DiagnosticInfo {
 private:
-  const ErrorInfo& Error;
+  const MPISanErrorInfo& Error;
   
 public:
-  MPISanitizerDiagnosticInfo(const ErrorInfo& Error);
+  MPISanitizerDiagnosticInfo(const MPISanErrorInfo& Error);
   
   void print(DiagnosticPrinter &DP) const override;
   
   static bool classof(const DiagnosticInfo *DI) {
-    return DI->getKind() >= DK_FirstPluginKind &&
-           DI->getKind() <= DK_LastPluginKind;
+    return DI->getKind() >= DK_FirstPluginKind;
   }
   
   /// Get the error info
-  const ErrorInfo& getErrorInfo() const { return Error; }
+  const MPISanErrorInfo& getErrorInfo() const { return Error; }
 };
 
 /// Error recovery strategy for different error scenarios
@@ -174,7 +173,7 @@ enum class RecoveryStrategy {
 /// Error recovery context for decision making
 struct RecoveryContext {
   /// Current error being processed
-  const ErrorInfo* CurrentError = nullptr;
+  const MPISanErrorInfo* CurrentError = nullptr;
   
   /// Previous errors in same category
   uint32_t CategoryErrorCount = 0;
@@ -239,25 +238,25 @@ public:
   bool shouldContinueAfterError(ErrorLevel Level) const;
   
   /// Check if pass should continue after error with context
-  bool shouldContinueAfterError(const ErrorInfo& Error) const;
+  bool shouldContinueAfterError(const MPISanErrorInfo& Error) const;
   
   /// Determine recovery strategy for a given error
-  RecoveryStrategy determineRecoveryStrategy(const ErrorInfo& Error, const RecoveryContext& Context) const;
+  RecoveryStrategy determineRecoveryStrategy(const MPISanErrorInfo& Error, const RecoveryContext& Context) const;
   
   /// Execute error recovery strategy
   bool executeRecoveryStrategy(RecoveryStrategy Strategy, const RecoveryContext& Context);
   
   /// Check if pass should continue after error with enhanced context
-  bool shouldContinueAfterError(const ErrorInfo& Error, const RecoveryContext& Context) const;
+  bool shouldContinueAfterError(const MPISanErrorInfo& Error, const RecoveryContext& Context) const;
   
   /// Implement graceful degradation for unsupported patterns
-  bool handleUnsupportedPattern(const ErrorInfo& Error, StringRef PatternDescription);
+  bool handleUnsupportedPattern(const MPISanErrorInfo& Error, StringRef PatternDescription);
   
   /// Collect and report error statistics
-  void collectErrorStatistics(const ErrorInfo& Error);
+  void collectErrorStatistics(const MPISanErrorInfo& Error);
   
   /// Generate error recovery recommendations
-  SmallVector<StringRef, 4> generateRecoveryRecommendations(const ErrorInfo& Error) const;
+  SmallVector<StringRef, 4> generateRecoveryRecommendations(const MPISanErrorInfo& Error) const;
   
   /// Check if error threshold has been exceeded for a category
   bool isErrorThresholdExceeded(ErrorCategory Category) const;
@@ -290,13 +289,13 @@ public:
   void setStatisticsCollection(bool Collect) { CollectStatistics = Collect; }
   
   /// Get all recorded errors
-  const SmallVector<ErrorInfo, 16>& getErrors() const { return Errors; }
+  const SmallVector<MPISanErrorInfo, 16>& getErrors() const { return Errors; }
   
   /// Get errors by category
-  SmallVector<const ErrorInfo*, 8> getErrorsByCategory(ErrorCategory Category) const;
+  SmallVector<const MPISanErrorInfo*, 8> getErrorsByCategory(ErrorCategory Category) const;
   
   /// Get errors by level
-  SmallVector<const ErrorInfo*, 8> getErrorsByLevel(ErrorLevel Level) const;
+  SmallVector<const MPISanErrorInfo*, 8> getErrorsByLevel(ErrorLevel Level) const;
   
   /// Check if specific error category has occurred
   bool hasErrorCategory(ErrorCategory Category) const;
@@ -305,7 +304,7 @@ public:
   bool hasErrorLevel(ErrorLevel Level) const;
   
   /// Format error message with context
-  std::string formatErrorMessage(const ErrorInfo& Error) const;
+  std::string formatErrorMessage(const MPISanErrorInfo& Error) const;
   
   /// Get error category name as string
   static StringRef getErrorCategoryName(ErrorCategory Category);
@@ -324,7 +323,7 @@ private:
   LLVMContext& Context;
   
   /// Recorded errors
-  SmallVector<ErrorInfo, 16> Errors;
+  SmallVector<MPISanErrorInfo, 16> Errors;
   
   /// Error statistics
   ErrorStatistics Statistics;
@@ -352,13 +351,13 @@ private:
   static constexpr size_t MaxErrorCount = 1000;
   
   /// Report error through LLVM diagnostic engine
-  void reportToDiagnosticEngine(const ErrorInfo& Error);
+  void reportToDiagnosticEngine(const MPISanErrorInfo& Error);
   
   /// Update error statistics
-  void updateStatistics(const ErrorInfo& Error);
+  void updateStatistics(const MPISanErrorInfo& Error);
   
   /// Create error info with current timestamp
-  ErrorInfo createErrorInfo(ErrorLevel Level, ErrorCategory Category, StringRef Message);
+  MPISanErrorInfo createErrorInfo(ErrorLevel Level, ErrorCategory Category, StringRef Message);
   
   /// Extract source location from instruction
   DebugLoc extractDebugLocation(const Instruction* Inst);
@@ -370,10 +369,10 @@ private:
   bool isErrorLimitReached() const { return Errors.size() >= MaxErrorCount; }
   
   /// Create recovery context for error processing
-  RecoveryContext createRecoveryContext(const ErrorInfo& Error, StringRef Phase) const;
+  RecoveryContext createRecoveryContext(const MPISanErrorInfo& Error, StringRef Phase) const;
   
   /// Evaluate error severity in context
-  bool isErrorSevereInContext(const ErrorInfo& Error, const RecoveryContext& Context) const;
+  bool isErrorSevereInContext(const MPISanErrorInfo& Error, const RecoveryContext& Context) const;
   
   /// Check if alternative approaches are available
   bool hasAlternativeApproaches(ErrorCategory Category) const;

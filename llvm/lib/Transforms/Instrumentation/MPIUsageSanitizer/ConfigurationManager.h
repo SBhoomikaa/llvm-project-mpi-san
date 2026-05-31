@@ -61,6 +61,12 @@ struct PassConfiguration {
   bool EnableDeadlockDetection = true;
   bool EnableDataRaceDetection = true;
   
+  /// New profiling, optimization and reporting settings
+  bool EnableProfiling = false;
+  bool EnableOptimization = true;
+  bool GenerateReport = false;
+  std::string ReportFile;
+  
   /// Configuration file path
   std::string ConfigFile;
   

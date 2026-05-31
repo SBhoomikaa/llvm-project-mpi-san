@@ -88,8 +88,8 @@ private:
   /// Pass components
   std::unique_ptr<ConfigurationManager> ConfigManager;
   std::unique_ptr<MPICallDetector> CallDetector;
-  std::unique_ptr<MetadataExtractor> MetadataExtractor;
-  std::unique_ptr<HookInserter> HookInserter;
+  std::unique_ptr<MetadataExtractor> MetaExtractor;
+  std::unique_ptr<HookInserter> HooksInserter;
   std::unique_ptr<StaticAnalyzer> StaticAnalyzer;
   std::unique_ptr<OptimizationEngine> OptimizationEngine;
   std::unique_ptr<ErrorHandler> ErrorHandler;

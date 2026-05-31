@@ -79,6 +79,11 @@ PassConfiguration::PassConfiguration() {
   EnabledTypes.insert(MPIFunctionType::File);
   EnabledTypes.insert(MPIFunctionType::Topology);
   EnabledTypes.insert(MPIFunctionType::Environment);
+
+  EnableProfiling = false;
+  EnableOptimization = true;
+  GenerateReport = false;
+  ReportFile = "";
 }
 
 //===----------------------------------------------------------------------===//
@@ -111,6 +116,11 @@ void CommandLineParser::parseOptions(PassConfiguration& Config) {
   Config.ConfigFile = ClConfigFile;
   Config.Verbose = ClVerbose;
   Config.PrintStatistics = ClStatistics;
+
+  Config.EnableProfiling = ClEnablePerformanceMonitoring;
+  Config.EnableOptimization = ClEnableOptimizations;
+  Config.GenerateReport = ClStatistics;
+  Config.ReportFile = "";
   
   // Parse enabled/disabled types
   if (!ClEnabledTypes.empty()) {
@@ -435,6 +445,10 @@ void ConfigurationManager::mergeConfigurations() {
   Config.EnablePerformanceMonitoring = Options.EnablePerformanceMonitoring;
   Config.EnableDeadlockDetection = Options.EnableDeadlockDetection;
   Config.EnableDataRaceDetection = Options.EnableDataRaceDetection;
+  
+  Config.EnableProfiling = Options.EnablePerformanceMonitoring;
+  Config.EnableOptimization = Options.EnableOptimizations;
+  Config.GenerateReport = Options.EnablePerformanceMonitoring;
   
   if (!Options.ConfigFile.empty()) {
     Config.ConfigFile = Options.ConfigFile;

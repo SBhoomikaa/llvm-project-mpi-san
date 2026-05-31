@@ -57,10 +57,10 @@ class HookInserter {
 public:
   HookInserter(const HookConfiguration& Config = {});
   HookInserter(const HookConfiguration& Config, std::shared_ptr<ConfigurationManager> ConfigMgr);
-  ~HookInserter();
+  virtual ~HookInserter();
   
   /// Insert hooks for all MPI calls in a function
-  bool insertHooks(Function& F, const std::vector<CallSite>& Sites);
+  virtual bool insertHooks(Function& F, const std::vector<CallSite>& Sites);
   
   /// Create declarations for all required hook functions in the module
   void createHookDeclarations(Module& M);

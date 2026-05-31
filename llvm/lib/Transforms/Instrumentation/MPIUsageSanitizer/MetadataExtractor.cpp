@@ -16,6 +16,7 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/GlobalVariable.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/ADT/StringSwitch.h"
 #include <memory>
@@ -275,7 +276,7 @@ ParameterRole TypeAnalyzer::analyzeIntegerType(Type* IntTy, unsigned Index, Stri
 MetadataExtractor::MetadataExtractor() {
   // Initialize the analyzers
   ParamAnalyzer = std::make_unique<ParameterAnalyzer>(nullptr); // Will be set later when DB is available
-  TypeAnalyzer = std::make_unique<class TypeAnalyzer>();
+  TyAnalyzer = std::make_unique<class TypeAnalyzer>();
 }
 
 MetadataExtractor::~MetadataExtractor() = default;
@@ -402,7 +403,7 @@ Value* MetadataExtractor::extractCommunicator(const CallSite& Site) {
         // MPI_COMM_SELF is typically 0x44000001 or similar
         // We can't know exact values without MPI implementation, but we can detect
         // if this looks like a communicator based on position and function
-        if (TypeAnalyzer && TypeAnalyzer->isCommunicatorType(Arg->getType())) {
+        if (TyAnalyzer && TyAnalyzer->isCommunicatorType(Arg->getType())) {
           return Arg;
         }
       }
@@ -431,7 +432,7 @@ Value* MetadataExtractor::extractCommunicator(const CallSite& Site) {
     // Generic fallback: last parameter if it looks like a communicator
     if (CI->arg_size() > 0) {
       Value* LastArg = CI->getArgOperand(CI->arg_size() - 1);
-      if (TypeAnalyzer && TypeAnalyzer->isCommunicatorType(LastArg->getType())) {
+      if (TyAnalyzer && TyAnalyzer->isCommunicatorType(LastArg->getType())) {
         return LastArg;
       }
     }
@@ -726,7 +727,7 @@ Value* MetadataExtractor::extractRequestHandle(const CallSite& Site) {
       // Check for constant request values
       if (auto* ConstInt = dyn_cast<ConstantInt>(Arg)) {
         // MPI_REQUEST_NULL is typically 0 or a specific implementation-defined value
-        if (TypeAnalyzer && TypeAnalyzer->isRequestType(Arg->getType())) {
+        if (TyAnalyzer && TyAnalyzer->isRequestType(Arg->getType())) {
           LLVM_DEBUG(dbgs() << "Found compile-time constant request (possibly MPI_REQUEST_NULL)\n");
           return Arg;
         }
@@ -734,7 +735,7 @@ Value* MetadataExtractor::extractRequestHandle(const CallSite& Site) {
       
       // Check for null pointer constants
       if (auto* ConstPtr = dyn_cast<ConstantPointerNull>(Arg)) {
-        if (TypeAnalyzer && TypeAnalyzer->isRequestType(Arg->getType())) {
+        if (TyAnalyzer && TyAnalyzer->isRequestType(Arg->getType())) {
           LLVM_DEBUG(dbgs() << "Found null pointer request constant\n");
           return Arg;
         }
@@ -786,7 +787,7 @@ Value* MetadataExtractor::extractRequestHandle(const CallSite& Site) {
       
       // Handle function parameters that are requests
       if (auto* ArgInst = dyn_cast<Argument>(Arg)) {
-        if (TypeAnalyzer && TypeAnalyzer->isRequestType(Arg->getType())) {
+        if (TyAnalyzer && TyAnalyzer->isRequestType(Arg->getType())) {
           LLVM_DEBUG(dbgs() << "Found function argument request parameter\n");
           return Arg;
         }
@@ -796,7 +797,7 @@ Value* MetadataExtractor::extractRequestHandle(const CallSite& Site) {
     // Generic fallback: look for pointer types that could be requests
     for (unsigned i = 0; i < CI->arg_size(); ++i) {
       Value* Arg = CI->getArgOperand(i);
-      if (TypeAnalyzer && TypeAnalyzer->isRequestType(Arg->getType())) {
+      if (TyAnalyzer && TyAnalyzer->isRequestType(Arg->getType())) {
         return Arg;
       }
     }
@@ -824,7 +825,7 @@ Value* MetadataExtractor::extractStatus(const CallSite& Site) {
     if (FuncName.starts_with("MPI_Wait") || FuncName.starts_with("MPI_Test")) {
       if (CI->arg_size() >= 2) {
         Value* SecondArg = CI->getArgOperand(1);
-        if (TypeAnalyzer && TypeAnalyzer->isStatusType(SecondArg->getType())) {
+        if (TyAnalyzer && TyAnalyzer->isStatusType(SecondArg->getType())) {
           return SecondArg;
         }
       }
@@ -834,7 +835,7 @@ Value* MetadataExtractor::extractStatus(const CallSite& Site) {
     if (FuncName.starts_with("MPI_Recv")) {
       if (CI->arg_size() >= 7) {
         Value* LastArg = CI->getArgOperand(6);
-        if (TypeAnalyzer && TypeAnalyzer->isStatusType(LastArg->getType())) {
+        if (TyAnalyzer && TyAnalyzer->isStatusType(LastArg->getType())) {
           return LastArg;
         }
       }
@@ -869,8 +870,8 @@ ParameterRole MetadataExtractor::determineParameterRole(const CallSite& Site,
                                                         unsigned Index, 
                                                         Type* ParamType) {
   // Use TypeAnalyzer if available
-  if (TypeAnalyzer) {
-    ParameterRole Role = TypeAnalyzer->analyzeType(ParamType, Index, Site.FunctionName);
+  if (TyAnalyzer) {
+    ParameterRole Role = TyAnalyzer->analyzeType(ParamType, Index, Site.FunctionName);
     if (Role != ParameterRole::Unknown) {
       return Role;
     }
@@ -1075,7 +1076,7 @@ std::vector<Value*> MetadataExtractor::extractFortranArrayDescriptors(const Call
       Value* Arg = CI->getArgOperand(i);
       Type* ArgType = Arg->getType();
       
-      if (TypeAnalyzer && TypeAnalyzer->isFortranArrayDescriptor(ArgType)) {
+      if (TyAnalyzer && TyAnalyzer->isFortranArrayDescriptor(ArgType)) {
         Descriptors.push_back(Arg);
         LLVM_DEBUG(dbgs() << "Found Fortran array descriptor at parameter " << i << "\n");
       }
@@ -1189,7 +1190,7 @@ std::vector<Value*> MetadataExtractor::extractOptionalPresenceFlags(const CallSi
       Value* Arg = CI->getArgOperand(i);
       Type* ArgType = Arg->getType();
       
-      if (TypeAnalyzer && TypeAnalyzer->isFortranOptionalPresent(ArgType, i)) {
+      if (TyAnalyzer && TyAnalyzer->isFortranOptionalPresent(ArgType, i)) {
         Flags.push_back(Arg);
         LLVM_DEBUG(dbgs() << "Found optional presence flag at parameter " << i << "\n");
       }
@@ -1236,7 +1237,7 @@ std::vector<Value*> MetadataExtractor::extractDerivedTypeInfo(const CallSite& Si
       Value* Arg = CI->getArgOperand(i);
       Type* ArgType = Arg->getType();
       
-      if (TypeAnalyzer && TypeAnalyzer->isFortranDerivedType(ArgType)) {
+      if (TyAnalyzer && TyAnalyzer->isFortranDerivedType(ArgType)) {
         DerivedTypes.push_back(Arg);
         LLVM_DEBUG(dbgs() << "Found Fortran derived type at parameter " << i << "\n");
       }

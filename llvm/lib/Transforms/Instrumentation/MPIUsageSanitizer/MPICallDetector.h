@@ -77,10 +77,10 @@ class NameManglingHandler;
 class MPICallDetector {
 public:
   MPICallDetector();
-  ~MPICallDetector();
+  virtual ~MPICallDetector();
   
   /// Detect all MPI calls in a function
-  std::vector<CallSite> detectMPICalls(Function& F);
+  virtual std::vector<CallSite> detectMPICalls(Function& F);
   
   /// Detect all MPI calls in a function with alias analysis support
   std::vector<CallSite> detectMPICalls(Function& F, AAResults* AA);

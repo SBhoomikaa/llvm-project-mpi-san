@@ -141,13 +141,13 @@ private:
 class MetadataExtractor {
 public:
   MetadataExtractor();
-  ~MetadataExtractor();
+  virtual ~MetadataExtractor();
   
   /// Set the MPI function database for enhanced parameter analysis
   void setFunctionDatabase(MPIFunctionDatabase* DB);
   
   /// Extract complete metadata from an MPI call site
-  MPICallMetadata extractMetadata(const CallSite& Site);
+  virtual MPICallMetadata extractMetadata(const CallSite& Site);
   
   /// Extract communicator parameter from MPI call
   Value* extractCommunicator(const CallSite& Site);
@@ -193,7 +193,7 @@ private:
                                                        const std::vector<ParameterInfo>& Infos);
   
   std::unique_ptr<ParameterAnalyzer> ParamAnalyzer;
-  std::unique_ptr<TypeAnalyzer> TypeAnalyzer;
+  std::unique_ptr<TypeAnalyzer> TyAnalyzer;
 };
 
 } // namespace llvm
