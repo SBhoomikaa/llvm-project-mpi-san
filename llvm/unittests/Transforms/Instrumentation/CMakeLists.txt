@@ -11,6 +11,7 @@ set(LLVM_LINK_COMPONENTS
 add_llvm_unittest(InstrumentationTests
   MemProfUseTest.cpp
   PGOInstrumentationTest.cpp
+  MPIUsageSanitizerConfigTest.cpp
   MPIUsageSanitizer/MetadataExtractorTest.cpp
   MPIUsageSanitizer/HookInserterTest.cpp
   MPIUsageSanitizer/StaticAnalyzerTest.cpp
