@@ -398,7 +398,7 @@ Value* MetadataExtractor::extractCommunicator(const CallSite& Site) {
       Value* Arg = CI->getArgOperand(i);
       
       // Check for constant communicator values
-      if (auto* ConstInt = dyn_cast<ConstantInt>(Arg)) {
+      if (isa<ConstantInt>(Arg)) {
         // MPI_COMM_WORLD is typically 0x44000000 or similar implementation-defined value
         // MPI_COMM_SELF is typically 0x44000001 or similar
         // We can't know exact values without MPI implementation, but we can detect
@@ -593,14 +593,14 @@ std::vector<Value*> MetadataExtractor::extractBufferInfo(const CallSite& Site) {
       }
       
       // Detect runtime variables that might need special handling
-      if (auto* LI = dyn_cast<LoadInst>(V)) {
+      if (isa<LoadInst>(V)) {
         LLVM_DEBUG(dbgs() << "Found runtime variable buffer parameter at index " << i << "\n");
         // This is a runtime variable - full runtime validation needed
         continue;
       }
       
       // Handle derived datatypes and vector types
-      if (auto* GEP = dyn_cast<GetElementPtrInst>(V)) {
+      if (isa<GetElementPtrInst>(V)) {
         LLVM_DEBUG(dbgs() << "Found GEP-based buffer parameter (derived type) at index " << i << "\n");
         // This might be accessing a field in a struct or array element
         continue;
@@ -725,7 +725,7 @@ Value* MetadataExtractor::extractRequestHandle(const CallSite& Site) {
       Value* Arg = CI->getArgOperand(i);
       
       // Check for constant request values
-      if (auto* ConstInt = dyn_cast<ConstantInt>(Arg)) {
+      if (isa<ConstantInt>(Arg)) {
         // MPI_REQUEST_NULL is typically 0 or a specific implementation-defined value
         if (TyAnalyzer && TyAnalyzer->isRequestType(Arg->getType())) {
           LLVM_DEBUG(dbgs() << "Found compile-time constant request (possibly MPI_REQUEST_NULL)\n");
@@ -734,7 +734,7 @@ Value* MetadataExtractor::extractRequestHandle(const CallSite& Site) {
       }
       
       // Check for null pointer constants
-      if (auto* ConstPtr = dyn_cast<ConstantPointerNull>(Arg)) {
+      if (isa<ConstantPointerNull>(Arg)) {
         if (TyAnalyzer && TyAnalyzer->isRequestType(Arg->getType())) {
           LLVM_DEBUG(dbgs() << "Found null pointer request constant\n");
           return Arg;
@@ -752,7 +752,7 @@ Value* MetadataExtractor::extractRequestHandle(const CallSite& Site) {
       
       // Check for load instructions from request variables
       if (auto* LI = dyn_cast<LoadInst>(Arg)) {
-        if (auto* AI = dyn_cast<AllocaInst>(LI->getPointerOperand())) {
+        if (isa<AllocaInst>(LI->getPointerOperand())) {
           // This is loading from a local request variable
           LLVM_DEBUG(dbgs() << "Found load from local request variable\n");
           return Arg;
@@ -767,7 +767,7 @@ Value* MetadataExtractor::extractRequestHandle(const CallSite& Site) {
           }
           
           // Handle arrays of requests
-          if (auto* ArrayAlloca = dyn_cast<AllocaInst>(GEP->getPointerOperand())) {
+          if (isa<AllocaInst>(GEP->getPointerOperand())) {
             LLVM_DEBUG(dbgs() << "Found access to request array element\n");
             return Arg;
           }
@@ -786,7 +786,7 @@ Value* MetadataExtractor::extractRequestHandle(const CallSite& Site) {
       }
       
       // Handle function parameters that are requests
-      if (auto* ArgInst = dyn_cast<Argument>(Arg)) {
+      if (isa<Argument>(Arg)) {
         if (TyAnalyzer && TyAnalyzer->isRequestType(Arg->getType())) {
           LLVM_DEBUG(dbgs() << "Found function argument request parameter\n");
           return Arg;
@@ -1333,13 +1333,13 @@ std::vector<Value*> MetadataExtractor::handleFortranPassByReference(const CallSi
         References.push_back(Arg);
         
         // Analyze what this reference points to
-        if (auto* LI = dyn_cast<LoadInst>(Arg)) {
+        if (isa<LoadInst>(Arg)) {
           // This is loading a value to pass by reference
           LLVM_DEBUG(dbgs() << "Found Fortran pass-by-reference load at parameter " << i << "\n");
-        } else if (auto* AI = dyn_cast<AllocaInst>(Arg)) {
+        } else if (isa<AllocaInst>(Arg)) {
           // Direct reference to local variable
           LLVM_DEBUG(dbgs() << "Found Fortran pass-by-reference alloca at parameter " << i << "\n");
-        } else if (auto* GEP = dyn_cast<GetElementPtrInst>(Arg)) {
+        } else if (isa<GetElementPtrInst>(Arg)) {
           // Reference to array element or structure field
           LLVM_DEBUG(dbgs() << "Found Fortran pass-by-reference GEP at parameter " << i << "\n");
         }
