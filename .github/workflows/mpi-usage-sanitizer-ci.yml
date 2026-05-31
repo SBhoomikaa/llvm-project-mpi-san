@@ -75,7 +75,7 @@ jobs:
 
     - name: Upload Test Report Artifact
       if: always()
-      uses: actions/artifacts@v3
+      uses: actions/upload-artifact@v3
       with:
         name: mpi-sanitizer-test-report
         path: llvm/lib/Transforms/Instrumentation/MPIUsageSanitizer/examples/test_report.md
