@@ -9,6 +9,7 @@ on:
       - 'llvm/lib/Transforms/Instrumentation/**'
       - 'llvm/unittests/Transforms/Instrumentation/**'
       - '.github/workflows/mpi-usage-sanitizer-ci.yml'
+      - 'Dockerfile' # <-- ADDED: Now it triggers when you change the Dockerfile
   pull_request:
     branches:
       - main
@@ -16,6 +17,7 @@ on:
       - 'llvm/lib/Transforms/Instrumentation/**'
       - 'llvm/unittests/Transforms/Instrumentation/**'
       - '.github/workflows/mpi-usage-sanitizer-ci.yml'
+      - 'Dockerfile' # <-- ADDED
 
 jobs:
   build-and-test:
@@ -27,6 +29,15 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 1
+
+    # --- NEW DOCKER STEPS ADDED HERE ---
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build the Docker Image
+      # This builds your Dockerfile and tags it as 'mpi-sanitizer-img'
+      run: docker build -t mpi-sanitizer-img .
+    # -----------------------------------
 
     - name: Set up Dependencies
       run: |
@@ -79,3 +90,4 @@ jobs:
       with:
         name: mpi-sanitizer-test-report
         path: llvm/lib/Transforms/Instrumentation/MPIUsageSanitizer/examples/test_report.md
+        
