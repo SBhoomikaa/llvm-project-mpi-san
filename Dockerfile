@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # MPI Usage Sanitizer Development Environment
 # This Dockerfile creates a complete development environment for the MPI Usage Sanitizer
 
@@ -104,7 +105,7 @@ RUN git config --global user.name "Developer" && \
     git config --global init.defaultBranch main
 
 # Create build script
-RUN cat > /workspace/build-mpi-sanitizer.sh << 'EOF'
+RUN cat <<'EOF' > /workspace/build-mpi-sanitizer.sh
 #!/bin/bash
 set -e
 
@@ -160,7 +161,7 @@ EOF
 RUN chmod +x /workspace/build-mpi-sanitizer.sh
 
 # Create test script
-RUN cat > /workspace/test-mpi-sanitizer.sh << 'EOF'
+RUN cat <<'EOF' > /workspace/test-mpi-sanitizer.sh
 #!/bin/bash
 set -e
 
@@ -200,7 +201,7 @@ EOF
 RUN chmod +x /workspace/test-mpi-sanitizer.sh
 
 # Create development helper script
-RUN cat > /workspace/dev-help.sh << 'EOF'
+RUN cat <<'EOF' > /workspace/dev-help.sh
 #!/bin/bash
 
 echo "MPI Usage Sanitizer Development Environment"
